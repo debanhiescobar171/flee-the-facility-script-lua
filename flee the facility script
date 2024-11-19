@@ -1,0 +1,73 @@
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+local function setWalkSpeed(speed)
+    if humanoid then
+        humanoid.WalkSpeed = speed
+    end
+end
+
+local function updateESP()
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and (obj.Name == "ComputerTable" or obj:FindFirstChild("Humanoid")) then
+            if not obj:FindFirstChild("ESP") then
+                local esp = Instance.new("BillboardGui")
+                esp.Name = "ESP"
+                esp.AlwaysOnTop = true
+                esp.Size = UDim2.new(0, 50, 0, 50)
+                esp.Adornee = obj.PrimaryPart or obj:FindFirstChild("HumanoidRootPart")
+
+                local text = Instance.new("TextLabel")
+                text.BackgroundTransparency = 1
+                text.Size = UDim2.new(1, 0, 1, 0)
+                text.Text = obj.Name == "ComputerTable" and "Computadora" or obj.Name
+                text.TextColor3 = Color3.new(0, 0, 1)
+                text.Parent = esp
+
+                esp.Parent = obj
+
+                if obj.Name == "ComputerTable" then
+                    obj.Values.Hacked.Changed:Connect(function()
+                        text.TextColor3 = obj.Values.Hacked.Value and Color3.new(0, 1, 0) or Color3.new(0, 0, 1)
+                    end)
+                end
+            end
+        end
+    end
+end
+
+local function teleportToNearestComputer()
+    local nearestComputer = nil
+    local shortestDistance = math.huge
+
+    for _, computer in pairs(workspace:GetDescendants()) do
+        if computer:IsA("Model") and computer.Name == "ComputerTable" and not computer.Values.Hacked.Value then
+            local distance = (computer.PrimaryPart.Position - character.HumanoidRootPart.Position).Magnitude
+            if distance < shortestDistance then
+                shortestDistance = distance
+                nearestComputer = computer
+            end
+        end
+    end
+
+    if nearestComputer then
+        character:SetPrimaryPartCFrame(nearestComputer.PrimaryPart.CFrame + Vector3.new(0, 5, 0))
+    end
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = player.PlayerGui
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 200, 0, 150)
+Frame.Position = UDim2.new(0.8, 0, 0.5, 0)
+Frame.BackgroundColor3 = Color3.new(0, 0, 0)
+Frame.BackgroundTransparency = 0.5
+Frame.Parent = ScreenGui
+
+local SpeedSlider = Instance.new("TextBox")
+SpeedSlider.Size = UDim2.new(0.9, 0, 0, 30)
+SpeedSlider.Position = UDim2.new(0.05, 0, 0.1, 0)
+SpeedSlider.Text = "16"
+SpeedSlider.Parent = Frame
